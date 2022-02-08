@@ -7,9 +7,11 @@ import (
 
 type RestaurantUpdate struct {
 	common.SQLModel
-	Name    *string `json:"name" form:"name" gorm:"column:name;"`
-	Address *string `json:"address" form:"address" gorm:"column:addr;"`
-	Status  *int    `json:"-" gorm:"column:status;"`
+	Name    *string        `json:"name" form:"name" gorm:"column:name;"`
+	Address *string        `json:"address" form:"address" gorm:"column:addr;"`
+	Status  *int           `json:"-" gorm:"column:status;"`
+	Logo    *common.Image  `json:"logo" gorm:"column:logo;"`
+	Cover   *common.Images `json:"cover" gorm:"column:cover;"`
 }
 
 func (RestaurantUpdate) TableName() string { return Restaurant{}.TableName() }

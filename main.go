@@ -2,7 +2,9 @@ package main
 
 import (
 	"Golang_Edu/component/appctx"
+	"Golang_Edu/component/uploadprovider"
 	restaurantgin "Golang_Edu/modules/restaurant/transport/gin"
+	uploadgin "Golang_Edu/modules/upload/transport/gin"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -20,6 +22,7 @@ func main() {
 	port := os.Getenv("DB_PORT")
 	dbOptions := os.Getenv("DB_OPTIONS")
 	dbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", user, password, host, port, dbName, dbOptions)
+
 	//dsn := "food_delivery:12345@tcp(127.0.0.1:3307)/food_delivery?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dbURL), &gorm.Config{})
 	if err != nil {
@@ -27,12 +30,20 @@ func main() {
 	}
 	db = db.Debug()
 
-	appCtx := appctx.NewAppContext(db)
+	s3Provider := uploadprovider.NewS3Provider(
+		os.Getenv("S3BucketName"),
+		os.Getenv("S3Region"),
+		os.Getenv("S3APIKey"),
+		os.Getenv("S3SecretKey"),
+		os.Getenv("S3Domain"),
+	)
+	appCtx := appctx.NewAppContext(db, s3Provider)
 
 	router := gin.Default()
 	// Version 1
 	v1 := router.Group("/v1")
 	{
+		v1.POST("/upload", uploadgin.UploadImage(appCtx))
 		restaurants := v1.Group("restaurants")
 		{
 			restaurants.GET("/:id", restaurantgin.GetRestaurant(appCtx))
