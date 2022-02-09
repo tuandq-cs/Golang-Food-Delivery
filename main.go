@@ -3,6 +3,7 @@ package main
 import (
 	"Golang_Edu/component/appctx"
 	"Golang_Edu/component/uploadprovider"
+	"Golang_Edu/middleware"
 	restaurantgin "Golang_Edu/modules/restaurant/transport/gin"
 	uploadgin "Golang_Edu/modules/upload/transport/gin"
 	"fmt"
@@ -40,6 +41,7 @@ func main() {
 	appCtx := appctx.NewAppContext(db, s3Provider)
 
 	router := gin.Default()
+	router.Use(middleware.Recover(appCtx))
 	// Version 1
 	v1 := router.Group("/v1")
 	{

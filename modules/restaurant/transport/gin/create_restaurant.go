@@ -1,6 +1,7 @@
 package restaurantgin
 
 import (
+	"Golang_Edu/common"
 	"Golang_Edu/component/appctx"
 	restaurantbusiness "Golang_Edu/modules/restaurant/business"
 	restaurantmodel "Golang_Edu/modules/restaurant/model"
@@ -13,15 +14,14 @@ func CreateRestaurant(appCtx appctx.AppContext) func(*gin.Context) {
 	return func(context *gin.Context) {
 		var data restaurantmodel.RestaurantCreate
 		if err := context.ShouldBind(&data); err != nil {
-			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
+			panic(common.ErrInvalidRequest(err))
 		}
 		store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
 		createRestaurantBiz := restaurantbusiness.NewCreateRestaurantBiz(store)
 		if err := createRestaurantBiz.CreateNewRestaurant(context.Request.Context(), &data); err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			panic(err)
 		}
-		context.JSON(http.StatusOK, gin.H{"data": data.Id})
+		data.Mask(common.DbTypeRestaurant)
+		context.JSON(http.StatusOK, common.SimpleSuccessResponse(data.FakeId))
 	}
 }

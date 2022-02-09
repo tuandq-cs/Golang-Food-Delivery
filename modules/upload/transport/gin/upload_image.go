@@ -1,6 +1,7 @@
 package uploadgin
 
 import (
+	"Golang_Edu/common"
 	"Golang_Edu/component/appctx"
 	uploadbusiness "Golang_Edu/modules/upload/business"
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,6 @@ func UploadImage(appCtx appctx.AppContext) func(ctx *gin.Context) {
 			return
 		}
 		img.Fulfill(appCtx.UploadProvider().GetDomain())
-		context.JSON(http.StatusOK, gin.H{"data": img})
+		context.JSON(http.StatusOK, common.SimpleSuccessResponse(img))
 	}
 }

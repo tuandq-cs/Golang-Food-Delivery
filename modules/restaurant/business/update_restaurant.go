@@ -35,13 +35,13 @@ func (biz *UpdateRestaurantBiz) UpdateRestaurant(
 ) error {
 	// Validation
 	if err := updateData.Validate(); err != nil {
-		return err
+		return common.ErrInvalidRequest(err)
 	}
 	// Check if restaurant is existed
 	oldData, err := biz.store.FindDataWithConditions(context, map[string]interface{}{"id": id})
 	if err != nil {
 		if err == common.ErrDataNotFound {
-			return errors.New("data not found")
+			return common.ErrEntityNotFound(restaurantmodel.EntityName, err)
 		}
 		return err
 	}
@@ -51,7 +51,7 @@ func (biz *UpdateRestaurantBiz) UpdateRestaurant(
 	}
 	// Update restaurant
 	if err := biz.store.UpdateDataWithConditions(context, updateData, map[string]interface{}{"id": id}); err != nil {
-		return err
+		return common.ErrCannotUpdateEntity(restaurantmodel.EntityName, err)
 	}
 	return nil
 }

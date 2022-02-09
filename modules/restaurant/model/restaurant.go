@@ -5,6 +5,8 @@ import (
 	"errors"
 )
 
+const EntityName = "Restaurant"
+
 type Restaurant struct {
 	common.SQLModel
 	Name    string         `json:"name" gorm:"column:name;"`

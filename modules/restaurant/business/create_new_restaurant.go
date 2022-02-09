@@ -1,6 +1,7 @@
 package restaurantbusiness
 
 import (
+	"Golang_Edu/common"
 	restaurantmodel "Golang_Edu/modules/restaurant/model"
 	"context"
 )
@@ -19,10 +20,10 @@ func NewCreateRestaurantBiz(store CreateRestaurantStore) *createNewRestaurantBiz
 
 func (biz *createNewRestaurantBiz) CreateNewRestaurant(context context.Context, data *restaurantmodel.RestaurantCreate) error {
 	if err := data.Validate(); err != nil {
-		return err
+		return common.ErrInvalidRequest(err)
 	}
 	if insertError := biz.store.Insert(context, data); insertError != nil {
-		return insertError
+		return common.ErrCannotCreateEntity(restaurantmodel.EntityName, insertError)
 	}
 	return nil
 }

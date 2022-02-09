@@ -1,6 +1,7 @@
 package restaurantgin
 
 import (
+	"Golang_Edu/common"
 	"Golang_Edu/component/appctx"
 	restaurantbusiness "Golang_Edu/modules/restaurant/business"
 	restaurantstorage "Golang_Edu/modules/restaurant/storage"
@@ -22,6 +23,6 @@ func InactivateRestaurant(appCtx appctx.AppContext) func(*gin.Context) {
 			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		context.JSON(http.StatusOK, gin.H{"data": true})
+		context.JSON(http.StatusOK, common.SimpleSuccessResponse(true))
 	}
 }

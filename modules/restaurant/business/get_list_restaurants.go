@@ -28,7 +28,7 @@ func (biz *getListRestaurantsBiz) GetListRestaurants(context context.Context,
 ) ([]restaurantmodel.Restaurant, error) {
 	listData, err := biz.store.ListDataWithConditions(context, paging, filter)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrCannotListEntity(restaurantmodel.EntityName, err)
 	}
 	return listData, nil
 }

@@ -1,28 +1,27 @@
 package restaurantgin
 
 import (
+	"Golang_Edu/common"
 	"Golang_Edu/component/appctx"
 	restaurantbusiness "Golang_Edu/modules/restaurant/business"
 	restaurantstorage "Golang_Edu/modules/restaurant/storage"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 func GetRestaurant(appCtx appctx.AppContext) func(*gin.Context) {
 	return func(context *gin.Context) {
-		id, convertError := strconv.Atoi(context.Param("id"))
-		if convertError != nil {
-			context.JSON(http.StatusBadRequest, gin.H{"error": convertError.Error()})
-			return
+		uid, err := common.FromBase58(context.Param("id"))
+		if err != nil {
+			panic(err)
 		}
 		store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
 		getRestaurantBiz := restaurantbusiness.NewGetRestaurantBiz(store)
-		data, err := getRestaurantBiz.GetRestaurant(context.Request.Context(), id)
+		data, err := getRestaurantBiz.GetRestaurant(context.Request.Context(), int(uid.GetLocalID()))
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			panic(err)
 		}
-		context.JSON(http.StatusOK, gin.H{"data": data})
+		data.Mask(common.DbTypeRestaurant)
+		context.JSON(http.StatusOK, common.SimpleSuccessResponse(data))
 	}
 }

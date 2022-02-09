@@ -20,14 +20,14 @@ func (store *sqlStore) ListDataWithConditions(
 	db = db.Where("status not in (0)")
 	// Count records
 	if err := db.Table(restaurantmodel.Restaurant{}.TableName()).Count(&paging.Total).Error; err != nil {
-		return nil, err
+		return nil, common.ErrDB(err)
 	}
 	// Get list records
 	if err := db.Limit(paging.Limit).
 		Offset(paging.Offset()).
 		Order("id desc").
 		Find(&listData).Error; err != nil {
-		return nil, err
+		return nil, common.ErrDB(err)
 	}
 	return listData, nil
 }

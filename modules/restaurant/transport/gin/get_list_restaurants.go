@@ -15,28 +15,27 @@ func GetListRestaurants(appCtx appctx.AppContext) func(*gin.Context) {
 		// Parse Paging
 		var paging common.Paging
 		if err := context.ShouldBind(&paging); err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			panic(err)
 		}
 		// Preprocess Paging
 		if err := paging.Preprocess(); err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			panic(err)
 		}
 		// Parse Filter
 		var filter restaurantmodel.Filter
 		if err := context.ShouldBind(&filter); err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			panic(err)
 		}
 		// Main
 		store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
 		biz := restaurantbusiness.NewGetListRestaurantsBiz(store)
 		listData, err := biz.GetListRestaurants(context.Request.Context(), &paging, &filter)
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			panic(err)
 		}
-		context.JSON(http.StatusOK, gin.H{"data": listData, "paging": paging})
+		for i := range listData {
+			listData[i].Mask(common.DbTypeRestaurant)
+		}
+		context.JSON(http.StatusOK, common.NewSuccessResponse(listData, paging, filter))
 	}
 }
