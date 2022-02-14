@@ -10,6 +10,7 @@ type RestaurantUpdate struct {
 	Name    *string        `json:"name" form:"name" gorm:"column:name;"`
 	Address *string        `json:"address" form:"address" gorm:"column:addr;"`
 	Status  *int           `json:"-" gorm:"column:status;"`
+	OwnerId int            `json:"-" gorm:"owner_id"`
 	Logo    *common.Image  `json:"logo" gorm:"column:logo;"`
 	Cover   *common.Images `json:"cover" gorm:"column:cover;"`
 }

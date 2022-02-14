@@ -21,11 +21,15 @@ type UpdateRestaurantStore interface {
 }
 
 type UpdateRestaurantBiz struct {
-	store UpdateRestaurantStore
+	store     UpdateRestaurantStore
+	requester common.Requester
 }
 
-func NewUpdateRestaurantBiz(store UpdateRestaurantStore) *UpdateRestaurantBiz {
-	return &UpdateRestaurantBiz{store: store}
+func NewUpdateRestaurantBiz(store UpdateRestaurantStore, requester common.Requester) *UpdateRestaurantBiz {
+	return &UpdateRestaurantBiz{
+		store:     store,
+		requester: requester,
+	}
 }
 
 func (biz *UpdateRestaurantBiz) UpdateRestaurant(
@@ -44,6 +48,9 @@ func (biz *UpdateRestaurantBiz) UpdateRestaurant(
 			return common.ErrEntityNotFound(restaurantmodel.EntityName, err)
 		}
 		return err
+	}
+	if biz.requester.GetRole() != "admin" && biz.requester.GetUserId() != oldData.OwnerId {
+		return common.ErrNoPermission(nil)
 	}
 	// Check if data has been deleted or blocked
 	if oldData.Status == 0 {

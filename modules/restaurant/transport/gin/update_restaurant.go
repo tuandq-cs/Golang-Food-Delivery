@@ -20,8 +20,9 @@ func UpdateRestaurant(appCtx appctx.AppContext) func(*gin.Context) {
 		if err := context.ShouldBind(&updateData); err != nil {
 			panic(common.ErrInvalidRequest(err))
 		}
+		user := context.MustGet(common.CurrentUser).(common.Requester)
 		store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
-		updateRestaurantBiz := restaurantbusiness.NewUpdateRestaurantBiz(store)
+		updateRestaurantBiz := restaurantbusiness.NewUpdateRestaurantBiz(store, user)
 		if err := updateRestaurantBiz.UpdateRestaurant(context.Request.Context(), &updateData, int(uid.GetLocalID())); err != nil {
 			panic(err)
 		}

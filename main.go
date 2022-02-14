@@ -4,8 +4,7 @@ import (
 	"Golang_Edu/component/appctx"
 	"Golang_Edu/component/uploadprovider"
 	"Golang_Edu/middleware"
-	restaurantgin "Golang_Edu/modules/restaurant/transport/gin"
-	uploadgin "Golang_Edu/modules/upload/transport/gin"
+	userstorage "Golang_Edu/modules/user/storage"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -38,24 +37,19 @@ func main() {
 		os.Getenv("S3SecretKey"),
 		os.Getenv("S3Domain"),
 	)
-	appCtx := appctx.NewAppContext(db, s3Provider)
+	appCtx := appctx.NewAppContext(db, s3Provider, os.Getenv("SYSTEM_SECRET"))
+	authStore := userstorage.NewSQLStore(appCtx.GetMainDBConnection())
 
 	router := gin.Default()
 	router.Use(middleware.Recover(appCtx))
 	// Version 1
 	v1 := router.Group("/v1")
-	{
-		v1.POST("/upload", uploadgin.UploadImage(appCtx))
-		restaurants := v1.Group("restaurants")
-		{
-			restaurants.GET("/:id", restaurantgin.GetRestaurant(appCtx))
-			restaurants.GET("", restaurantgin.GetListRestaurants(appCtx))
-			restaurants.POST("", restaurantgin.CreateRestaurant(appCtx))
-			restaurants.PATCH("/:id", restaurantgin.UpdateRestaurant(appCtx))
-			restaurants.PATCH("/:id/inactivate", restaurantgin.InactivateRestaurant(appCtx))
-			restaurants.PATCH("/:id/activate", restaurantgin.ActivateRestaurant(appCtx))
-			restaurants.DELETE("/:id", restaurantgin.DeleteRestaurant(appCtx))
-		}
-	}
+	mainRoute(v1, appCtx, authStore)
+	admin := v1.Group(
+		"/admin",
+		middleware.RequiredAuth(appCtx, authStore),
+		middleware.RequiredRoles(appCtx, "admin"),
+	)
+	adminRoute(admin, appCtx)
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
