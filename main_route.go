@@ -4,6 +4,7 @@ import (
 	"Golang_Edu/component/appctx"
 	"Golang_Edu/middleware"
 	restaurantgin "Golang_Edu/modules/restaurant/transport/gin"
+	restaurantlikegin "Golang_Edu/modules/restaurantlike/transport/gin"
 	uploadgin "Golang_Edu/modules/upload/transport/gin"
 	usergin "Golang_Edu/modules/user/transport/gin"
 	"github.com/gin-gonic/gin"
@@ -24,5 +25,10 @@ func mainRoute(g *gin.RouterGroup, appCtx appctx.AppContext, authStore middlewar
 		restaurants.PATCH("/:id/inactivate", restaurantgin.InactivateRestaurant(appCtx))
 		restaurants.PATCH("/:id/activate", restaurantgin.ActivateRestaurant(appCtx))
 		restaurants.DELETE("/:id", restaurantgin.DeleteRestaurant(appCtx))
+
+		restaurants.GET("/:id/liked_users", restaurantlikegin.GetUsersLikeRestaurant(appCtx))
+		restaurants.POST("/:id/like", restaurantlikegin.UserLikeRestaurant(appCtx))
+		restaurants.DELETE("/:id/dislike", restaurantlikegin.UserDislikeRestaurant(appCtx))
+
 	}
 }

@@ -13,7 +13,7 @@ func (store *sqlStore) FindUser(context context.Context,
 	var user usermodel.User
 	if err := db.Where(conditions).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, common.RecordNotFound
+			return nil, common.ErrDataNotFound
 		}
 		return nil, common.ErrDB(err)
 	}

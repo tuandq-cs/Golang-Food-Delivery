@@ -5,7 +5,9 @@ import (
 	"Golang_Edu/component/appctx"
 	restaurantbusiness "Golang_Edu/modules/restaurant/business"
 	restaurantmodel "Golang_Edu/modules/restaurant/model"
+	restaurantrepository "Golang_Edu/modules/restaurant/repository"
 	restaurantstorage "Golang_Edu/modules/restaurant/storage"
+	restaurantlikestorage "Golang_Edu/modules/restaurantlike/storage"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -27,8 +29,11 @@ func GetListRestaurants(appCtx appctx.AppContext) func(*gin.Context) {
 			panic(err)
 		}
 		// Main
-		store := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
-		biz := restaurantbusiness.NewGetListRestaurantsBiz(store)
+		requester := context.MustGet(common.CurrentUser).(common.Requester)
+		listRestaurantsStore := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
+		likedUsersStore := restaurantlikestorage.NewSQLStore(appCtx.GetMainDBConnection())
+		repo := restaurantrepository.NewGetListRestaurantsRepository(listRestaurantsStore, likedUsersStore, requester)
+		biz := restaurantbusiness.NewGetListRestaurantsBiz(repo)
 		listData, err := biz.GetListRestaurants(context.Request.Context(), &paging, &filter)
 		if err != nil {
 			panic(err)

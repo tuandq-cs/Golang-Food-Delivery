@@ -6,29 +6,31 @@ import (
 	"context"
 )
 
-type GetListRestaurantStore interface {
-	ListDataWithConditions(
+type GetListRestaurantsRepository interface {
+	GetListRestaurants(
 		context context.Context,
-		paging *common.Paging,
 		filter *restaurantmodel.Filter,
+		paging *common.Paging,
+		moreKeys ...string,
 	) ([]restaurantmodel.Restaurant, error)
 }
 
 type getListRestaurantsBiz struct {
-	store GetListRestaurantStore
+	repo GetListRestaurantsRepository
 }
 
-func NewGetListRestaurantsBiz(store GetListRestaurantStore) *getListRestaurantsBiz {
-	return &getListRestaurantsBiz{store: store}
+func NewGetListRestaurantsBiz(repo GetListRestaurantsRepository) *getListRestaurantsBiz {
+	return &getListRestaurantsBiz{repo: repo}
 }
 
 func (biz *getListRestaurantsBiz) GetListRestaurants(context context.Context,
 	paging *common.Paging,
 	filter *restaurantmodel.Filter,
 ) ([]restaurantmodel.Restaurant, error) {
-	listData, err := biz.store.ListDataWithConditions(context, paging, filter)
+	listData, err := biz.repo.GetListRestaurants(context, filter, paging, "User")
 	if err != nil {
 		return nil, common.ErrCannotListEntity(restaurantmodel.EntityName, err)
 	}
+
 	return listData, nil
 }

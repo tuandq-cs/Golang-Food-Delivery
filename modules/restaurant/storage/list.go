@@ -10,6 +10,7 @@ func (store *sqlStore) ListDataWithConditions(
 	context context.Context,
 	paging *common.Paging,
 	filter *restaurantmodel.Filter,
+	moreKeys ...string,
 ) ([]restaurantmodel.Restaurant, error) {
 	db := store.db
 	var listData []restaurantmodel.Restaurant
@@ -18,9 +19,12 @@ func (store *sqlStore) ListDataWithConditions(
 		db = db.Where("owner_id = ?", filter.UserId)
 	}
 	db = db.Where("status not in (0)")
-	// Count records
+	// LikeCount records
 	if err := db.Table(restaurantmodel.Restaurant{}.TableName()).Count(&paging.Total).Error; err != nil {
 		return nil, common.ErrDB(err)
+	}
+	for i := range moreKeys {
+		db = db.Preload(moreKeys[i])
 	}
 	// Get list records
 	if err := db.Limit(paging.Limit).

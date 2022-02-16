@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// UID's structure contains 62 bits: LocalID - ObjectType - ShardID
+// UID structure contains 62 bits: LocalID - ObjectType - ShardID
 // 32 bits for LocalID, max(2^32) - 1
 // 10 bits for ObjectType
 // 18 bits for ShardID
