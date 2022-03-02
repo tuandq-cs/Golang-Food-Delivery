@@ -40,6 +40,9 @@ func GetListRestaurants(appCtx appctx.AppContext) func(*gin.Context) {
 		}
 		for i := range listData {
 			listData[i].Mask(common.DbTypeRestaurant)
+			if i == len(listData)-1 {
+				paging.NextCursor = listData[i].FakeId.String()
+			}
 		}
 		context.JSON(http.StatusOK, common.NewSuccessResponse(listData, paging, filter))
 	}

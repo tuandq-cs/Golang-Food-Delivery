@@ -56,16 +56,17 @@ func (repo *getListRestaurantsRepository) GetListRestaurants(
 	}
 
 	// Mapping map userLikes, userHasLiked to list restaurants
-	userLikes, err := repo.likedUsersStore.GetUserLikes(context, resIds)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	//userLikes, err := repo.likedUsersStore.GetUserLikes(context, resIds)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+
 	userHasLiked, err := repo.likedUsersStore.CheckUserHasLiked(context, repo.requester.GetUserId(), resIds)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	for i, item := range restaurants {
-		restaurants[i].LikeCount = userLikes[item.Id]
+		//restaurants[i].LikedCount = userLikes[item.Id]
 		restaurants[i].HasLiked = userHasLiked[item.Id]
 	}
 

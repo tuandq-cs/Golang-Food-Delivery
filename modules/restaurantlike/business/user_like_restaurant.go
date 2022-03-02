@@ -2,8 +2,10 @@ package restaurantlikebusiness
 
 import (
 	"Golang_Edu/common"
+	"Golang_Edu/component/asyncjob"
 	restaurantlikemodel "Golang_Edu/modules/restaurantlike/model"
 	"context"
+	"log"
 )
 
 type userLikeRestaurantStore interface {
@@ -14,13 +16,22 @@ type userLikeRestaurantStore interface {
 	Insert(context context.Context, newData *restaurantlikemodel.Like) error
 }
 
-type userLikeRestaurantBiz struct {
-	store userLikeRestaurantStore
+type incLikedCountResStore interface {
+	IncreasedLikeCounts(
+		context context.Context,
+		restaurantId int,
+	) error
 }
 
-func NewUserLikeRestaurantBiz(store userLikeRestaurantStore) *userLikeRestaurantBiz {
+type userLikeRestaurantBiz struct {
+	store        userLikeRestaurantStore
+	incLikeStore incLikedCountResStore
+}
+
+func NewUserLikeRestaurantBiz(store userLikeRestaurantStore, incLikeStore incLikedCountResStore) *userLikeRestaurantBiz {
 	return &userLikeRestaurantBiz{
-		store: store,
+		store:        store,
+		incLikeStore: incLikeStore,
 	}
 }
 
@@ -28,12 +39,12 @@ func NewUserLikeRestaurantBiz(store userLikeRestaurantStore) *userLikeRestaurant
 // 1. Check if user has been like this restaurant
 // 2. If not, create record in restaurant_likes table
 func (biz *userLikeRestaurantBiz) LikeRestaurant(
-	context context.Context,
+	ctx context.Context,
 	newData *restaurantlikemodel.Like,
 ) error {
 	// 1. Check if user has been like this restaurant
 	oldData, err := biz.store.FindDataWithConditions(
-		context,
+		ctx,
 		map[string]interface{}{"user_id": newData.UserId, "restaurant_id": newData.RestaurantId},
 	)
 	// If err == ErrDataNotFound -> Continue
@@ -47,8 +58,24 @@ func (biz *userLikeRestaurantBiz) LikeRestaurant(
 		))
 	}
 	// 2. If not, create record in restaurant_likes table
-	if err := biz.store.Insert(context, newData); err != nil {
+	if err := biz.store.Insert(ctx, newData); err != nil {
 		return restaurantlikemodel.ErrCannotLikeRestaurant(err)
 	}
+
+	// Side effect
+	go func() {
+		defer common.Recovery()
+		job := asyncjob.NewJob(func(ctx context.Context) error {
+			if err := biz.incLikeStore.IncreasedLikeCounts(ctx, newData.RestaurantId); err != nil {
+				log.Println(err)
+			}
+			return nil
+		}, asyncjob.WithName("IncreasedLikeCounts"))
+		group := asyncjob.NewGroup(false, job)
+		if err := group.Run(ctx); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	return nil
 }

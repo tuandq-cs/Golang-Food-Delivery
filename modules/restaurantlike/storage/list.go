@@ -4,6 +4,8 @@ import (
 	"Golang_Edu/common"
 	restaurantlikemodel "Golang_Edu/modules/restaurantlike/model"
 	"context"
+	"github.com/btcsuite/btcutil/base58"
+	"time"
 )
 
 func (store *sqlStore) GetUserLikes(
@@ -62,21 +64,31 @@ func (store *sqlStore) GetUsersLikeRestaurant(
 			db = db.Where("restaurant_id = ?", v.RestaurantId)
 		}
 	}
-	if paging != nil {
-		if err := db.Count(&paging.Total).Error; err != nil {
+
+	if err := db.Count(&paging.Total).Error; err != nil {
+		return nil, common.ErrDB(err)
+	}
+	if v := paging.FakeCursor; v != "" {
+		createdAt, err := time.Parse(time.RFC3339Nano, string(base58.Decode(v)))
+		if err != nil {
 			return nil, common.ErrDB(err)
 		}
-		db = db.Offset(paging.Offset()).Limit(paging.Limit)
+		db = db.Where("created_at < ?", createdAt.Format("2006-01-02 15:04:05"))
+	} else {
+		db = db.Offset(paging.Offset())
 	}
 
 	db = db.Preload("User")
-	if err := db.Order("created_at desc").Find(&result).Error; err != nil {
+	if err := db.Order("created_at desc").Limit(paging.Limit).Find(&result).Error; err != nil {
 		return nil, common.ErrDB(err)
 	}
 
 	listUsers := make([]common.SimpleUser, len(result))
 	for i, _ := range result {
 		listUsers[i] = *result[i].User
+		if i == len(result)-1 {
+			paging.NextCursor = base58.Encode([]byte(result[i].CreatedAt.Format(time.RFC3339Nano)))
+		}
 	}
 	return listUsers, nil
 }

@@ -3,6 +3,7 @@ package restaurantlikegin
 import (
 	"Golang_Edu/common"
 	"Golang_Edu/component/appctx"
+	restaurantstorage "Golang_Edu/modules/restaurant/storage"
 	restaurantlikebusiness "Golang_Edu/modules/restaurantlike/business"
 	restaurantlikemodel "Golang_Edu/modules/restaurantlike/model"
 	restaurantlikestorage "Golang_Edu/modules/restaurantlike/storage"
@@ -22,7 +23,8 @@ func UserDislikeRestaurant(appCtx appctx.AppContext) func(ctx *gin.Context) {
 			UserId:       u.GetUserId(),
 		}
 		store := restaurantlikestorage.NewSQLStore(appCtx.GetMainDBConnection())
-		biz := restaurantlikebusiness.NewUserDislikeRestaurantBiz(store)
+		desLikedCountStore := restaurantstorage.NewSQLStore(appCtx.GetMainDBConnection())
+		biz := restaurantlikebusiness.NewUserDislikeRestaurantBiz(store, desLikedCountStore)
 		if err := biz.DislikeRestaurant(ctx.Request.Context(), &data); err != nil {
 			panic(err)
 		}
